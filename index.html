@@ -472,7 +472,7 @@ function renderHero(){
  const O=["50% 35%","40% 50%","60% 40%","50% 60%"];
  document.getElementById("hero").innerHTML=`<div class="hero-bg">${shots.map(u=>`<div class="bgi" style="background-image:url('${cssu(u)}')"></div>`).join("")}</div>
  <span class="orb"></span><div class="grain"></div><div class="cine"></div>${T("site.badge","span","hero-badge")}
- <div class="stage3d"><div class="float3d"><div class="frame3d"><span class="lay l2"></span><span class="lay l1"></span><span class="floor"></span>${shots.map((u,j)=>`<figure class="pic" style="margin:0;--o:${O[j%4]}"><img src="${esc(u)}" alt="" ${j?'loading="lazy"':''}></figure>`).join("")}</div></div></div>
+ <div class="stage3d"><div class="float3d"><div class="frame3d"><span class="lay l2"></span><span class="lay l1"></span><span class="floor"></span>${shots.map((u,j)=>`<figure class="pic" style="margin:0;--o:${O[j%4]}"><img src="${esc(u)}" alt="" decoding="async"></figure>`).join("")}</div></div></div>
  <div class="hero-nav"><span class="hero-num" id="heroNum"></span><div class="hero-dots">${shots.map((_,j)=>`<i data-shot="${j}" role="button" aria-label="الصورة ${ar(j+1)}"></i>`).join("")}</div></div>
  ${EDIT?`<span class="itools" style="top:56px;z-index:8">${shots.map((_,j)=>`<button type="button" data-rep="site.shots.${j}">استبدال ${ar(j+1)}</button><button type="button" class="del" data-del="site.shots.${j}">حذف ${ar(j+1)}</button>`).join("")}<button type="button" data-add="site.shots">إضافة صورة</button></span>`:""}
  <div class="hero-in">${T("site.kick","span","kick")}${T("site.title","h2")}${T("site.text","p")}
@@ -511,7 +511,8 @@ function heroGo(n){const H=document.getElementById("hero");const P=[...H.querySe
  heroCur=n;const p=P[n];p.classList.remove("out");void p.offsetWidth;p.classList.add("on");B[n]&&B[n].classList.add("on");
  D.forEach((d,j)=>{d.classList.remove("on");if(j===n){void d.offsetWidth;d.classList.add("on")}});
  const num=document.getElementById("heroNum");if(num)num.textContent=String(n+1).padStart(2,"0")+" / "+String(P.length).padStart(2,"0")}
-function startHero(){clearInterval(heroT);heroCur=-1;const n=document.querySelectorAll("#hero .pic").length;if(!n)return;heroGo(0);
+function dropShot(img){const H=document.getElementById("hero");const P=[...H.querySelectorAll(".pic")];const j=P.indexOf(img.closest(".pic"));if(j<0)return;P[j].remove();const B=H.querySelectorAll(".bgi"),D=H.querySelectorAll(".hero-dots i");B[j]&&B[j].remove();D[j]&&D[j].remove();H.querySelectorAll(".hero-dots i").forEach((d,k)=>d.dataset.shot=k);startHero()}
+function startHero(){clearInterval(heroT);heroCur=-1;document.querySelectorAll("#hero .pic img").forEach(im=>{if(im.complete&&!im.naturalWidth&&im.getAttribute("src"))setTimeout(()=>dropShot(im));else im.onerror=()=>dropShot(im)});const n=document.querySelectorAll("#hero .pic").length;if(!n)return;heroGo(0);
  if(n>1&&!matchMedia("(prefers-reduced-motion: reduce)").matches)heroT=setInterval(()=>heroGo((heroCur+1)%n),HOLD)}
 document.addEventListener("click",e=>{const d=e.target.closest&&e.target.closest("#hero .hero-dots i");if(!d)return;heroGo(+d.dataset.shot);clearInterval(heroT);const n=document.querySelectorAll("#hero .pic").length;heroT=setInterval(()=>heroGo((heroCur+1)%n),HOLD)});
 document.addEventListener("pointermove",e=>{const h=e.target.closest&&e.target.closest("#hero");const f=document.querySelector("#hero .frame3d");if(!f)return;if(!h||e.pointerType!=="mouse"){f.style.removeProperty("--py");f.style.removeProperty("--px");return}const r=h.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;f.style.setProperty("--py",(x*-14).toFixed(2)+"deg");f.style.setProperty("--px",(y*-8).toFixed(2)+"deg")});
